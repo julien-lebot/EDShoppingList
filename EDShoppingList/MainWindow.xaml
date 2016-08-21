@@ -1,0 +1,125 @@
+﻿<Window x:Class="EDShoppingList.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EDShoppingList"
+        xmlns:behaviors="clr-namespace:WPFTextBoxAutoComplete;assembly=WPFTextBoxAutoComplete"
+        mc:Ignorable="d"
+        Title="E:D Shopping List" Height="350" Width="525">
+    <Window.DataContext>
+        <local:ModuleSearchViewModel />
+    </Window.DataContext>
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <local:NoDataValueConverter x:Key="NoDataValueConverter" />
+    </Window.Resources>
+    <Grid>
+        <!-- Bullshit hax for DataGrid http://stackoverflow.com/questions/7660967/wpf-error-cannot-find-governing-frameworkelement-for-target-element -->
+        <Grid.Resources>
+            <FrameworkElement x:Key="ProxyElement" DataContext="{Binding}"/>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Continuation of the bullshit hax for DataGrid -->
+        <ContentControl Visibility="Collapsed" Content="{StaticResource ProxyElement}" />
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Grid.Column="0" Margin="5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="50" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Module Name" Grid.Column="0" Margin="5"/>
+                <TextBlock Text="Class" Grid.Column="1" Margin="5" />
+                <TextBlock Text="Rating" Grid.Column="2" Margin="5" />
+            </Grid>
+            <Button Content="Add Query" Grid.Row="0" Grid.Column="1" Margin="5" Command="{Binding AddSearchQueryCommand}" />
+            <ItemsControl Grid.Row="1" Grid.Column="0" ItemsSource="{Binding SearchQueries}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                                <ColumnDefinition Width="50" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding Name}" Grid.Column="0" Margin="5" 
+                                     behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding DataContext.Modules, RelativeSource={RelativeSource AncestorType=Window}}"
+                                     behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="InvariantCultureIgnoreCase"/>
+                            <TextBox Text="{Binding Class}" Grid.Column="1" Margin="5" />
+                            <TextBox Text="{Binding Rating}" Grid.Column="2" Margin="5" />
+                            <Button Content="-" Grid.Column="3" Margin="5"
+                                    Command="{Binding DataContext.RemoveSearchQueryCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="5">
+                <TextBlock Text="Max " Margin="5,0"/>
+                <TextBox Text="{Binding DistanceToSystem}" Width="50" />
+                <TextBlock Text="LY from" Margin="5,0"/>
+                <TextBox Text="{Binding System}" Width="100"
+                         behaviors:AutoCompleteBehavior.AutoCompleteItemsSource="{Binding SystemsNames}"
+                         behaviors:AutoCompleteBehavior.AutoCompleteStringComparison="InvariantCultureIgnoreCase"/>
+                <TextBlock Text="Show only stations with all modules" Margin="5,0" />
+                <CheckBox IsChecked="{Binding ShowOnlyStationsWithAllModules, Mode=TwoWay}" VerticalAlignment="Center"/>
+            </StackPanel>
+            <Button Content="Search" Grid.Row="2" Grid.Column="1" Margin="5" Command="{Binding SearchModuleCommand}" />
+        </Grid>
+
+        <DataGrid x:Name="SearchResults"
+                  Grid.Row="1"
+                  ItemsSource="{Binding SearchResults}"
+                  AutoGenerateColumns="False"
+                  CanUserSortColumns="True"
+                  CanUserReorderColumns="True"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="True"
+                  CanUserResizeColumns="True"
+                  CanUserResizeRows="True"
+                  EnableRowVirtualization="True"
+                  EnableColumnVirtualization="True"
+                  VirtualizingStackPanel.IsVirtualizing="True" 
+                  VirtualizingStackPanel.VirtualizationMode="Recycling" >
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="System" Binding="{Binding System}" />
+                <DataGridTextColumn Header="Distance to me" Binding="{Binding DistanceToSystem, StringFormat={}{0:N0} LY}" 
+                                    Visibility="{Binding DataContext.IsDistanceDisplayed,
+                                                         Source={StaticResource ProxyElement},
+                                                         Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Station" Binding="{Binding Station}" />
+                <DataGridTextColumn Header="Distance to star" Binding="{Binding DistanceToStar, Converter={StaticResource NoDataValueConverter}, ConverterParameter={}{0:N0} LY|No data}" />
+                <DataGridTextColumn Header="Module" Binding="{Binding Module}" />
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" />
+                <DataGridTextColumn Header="Class" Binding="{Binding Class}" />
+                <DataGridTextColumn Header="Rating" Binding="{Binding Rating}" />
+                <DataGridTextColumn Header="Price" Binding="{Binding Price, Converter={StaticResource NoDataValueConverter}, ConverterParameter={}{0:N0} CR|No data}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StatusBar Grid.Row="2">
+            <TextBlock Text="{Binding Status}" />
+        </StatusBar>
+    </Grid>
+</Window>
