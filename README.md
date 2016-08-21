@@ -1,4 +1,7 @@
 # Elite: Dangerous module finder for the lazy pilot
+
+![Screenshot of the application](https://github.com/julien-lebot/EDShoppingList/raw/master/EDShoppingList/Screenshot.PNG)
+
 **EDShoppingList** is an application for players to quickly lookup modules from [**EDDB**](https://eddb.io/).
 It's inspired by [**ed-td.space's module finder**](http://ed-td.space/en/30/Find+Outfitting) but it adds the possibility to search for multiple modules and filter for stations that has all the modules sought after.
 
